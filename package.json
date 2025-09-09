@@ -4,7 +4,8 @@
   "description": "WhatsApp WPPConnect com QR code dinâmico",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "npx puppeteer install"
   },
   "dependencies": {
     "@wppconnect-team/wppconnect": "latest",

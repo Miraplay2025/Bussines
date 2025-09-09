@@ -2,10 +2,14 @@ const wppconnect = require('@wppconnect-team/wppconnect');
 const express = require('express');
 const cors = require('cors');
 const QRCode = require('qrcode');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Servir HTML estático
+app.use(express.static(path.join(__dirname, 'public')));
 
 let client;
 let lastQRCode = null;
@@ -14,7 +18,7 @@ let lastQRCode = null;
 wppconnect.create({
     session: 'session1',
     puppeteerOptions: { headless: true },
-    folderNameToken: './tokens' // pasta para salvar sessão
+    folderNameToken: './tokens'
 }).then((c) => {
     client = c;
     console.log('WhatsApp conectado!');
@@ -25,7 +29,7 @@ wppconnect.create({
         console.log('QR Code atualizado!');
     });
 
-    // Evento quando a sessão é perdida
+    // Evento de desconexão
     client.on('disconnected', (reason) => {
         console.log('WhatsApp desconectado:', reason);
         lastQRCode = null;
@@ -33,12 +37,8 @@ wppconnect.create({
 
 }).catch(err => console.log('Erro ao criar sessão:', err));
 
-// Endpoint para pegar QR code
+// Endpoint para obter QR code
 app.get('/qrcode', async (req, res) => {
-    if (!lastQRCode && !client) {
-        return res.json({ qr: null, connected: false });
-    }
-
     const connected = client && client.isConnected ? true : false;
     res.json({ qr: lastQRCode, connected });
 });
@@ -58,8 +58,6 @@ app.post('/send', async (req, res) => {
     }
 });
 
-// Servir HTML estático
-app.use(express.static('public')); // coloque seu index.html na pasta "public"
-
+// Porta
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

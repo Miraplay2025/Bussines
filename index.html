@@ -12,11 +12,10 @@
     button { margin: 5px 0; padding: 6px 12px; cursor: pointer; border-radius: 6px; border: none; background: #007bff; color: #fff; }
     button:hover { background: #0056b3; }
     pre { background: #eee; padding: 10px; border-radius: 6px; overflow-x: auto; }
-
-    /* Popup modal */
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
-    .modal-content { background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 300px; text-align: center; }
-    .close { float: right; font-size: 20px; cursor: pointer; }
+    #popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+             background: #fff; padding: 20px; border: 2px solid #333; border-radius: 8px; z-index: 1000; }
+    #popup img { max-width: 250px; }
+    #overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 500; }
   </style>
 </head>
 <body>
@@ -24,22 +23,21 @@
   <div id="sessions"></div>
   <button onclick="novaSessao()">Iniciar Nova Sessão</button>
 
-  <div id="qrModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="fecharPopup()">&times;</span>
-      <h3 id="qrTitulo">Aguardando QR Code...</h3>
-      <img id="qrImg" src="" alt="QR Code" />
-      <p id="qrErro" style="color:red;"></p>
-    </div>
+  <!-- Popup QR -->
+  <div id="overlay"></div>
+  <div id="popup">
+    <h3>Aguardando QR Code...</h3>
+    <img id="qrImage" src="" alt="QR Code">
+    <button onclick="fecharPopup()">Fechar</button>
   </div>
 
   <script>
-    const API = ""; // Mesmo domínio do Render
-    let qrInterval;
+    const API = window.location.origin;
+    let interval;
 
     async function carregarSessoes() {
       try {
-        const res = await fetch(`${API}/sessions`);
+        const res = await fetch(API + "/sessions");
         const sessions = await res.json();
         const container = document.getElementById("sessions");
         container.innerHTML = "";
@@ -49,92 +47,77 @@
           return;
         }
 
-        sessions.forEach((s) => {
+        sessions.forEach(async (s) => {
           const div = document.createElement("div");
           div.className = "session";
           div.innerHTML = `<h3>Sessão: ${s.name} - ${s.active ? "Ativa ✅" : "Aguardando QR ❌"}</h3>`;
 
           if (!s.active) {
-            div.innerHTML += `<p>Escaneie o QR para ativar a sessão.</p>`;
+            const qrRes = await fetch(API + "/qr/" + s.name);
+            const qrData = await qrRes.json();
+            if (qrData.qr) {
+              abrirPopup(qrData.qr);
+            }
           } else {
             div.innerHTML += `
               <input type="text" id="nr-${s.name}" placeholder="Número (25884xxxxxx)">
               <input type="text" id="msg-${s.name}" placeholder="Mensagem">
               <button onclick="enviarMensagem('${s.name}')">Enviar</button>
-              <br>
-              <button onclick="baixarDados('${s.name}')">Baixar Dados da Sessão</button>
               <button onclick="excluirSessao('${s.name}')">Excluir Sessão</button>
+              <br><br>
+              <button onclick="baixarDados('${s.name}')">Baixar Dados da Sessão</button>
               <pre id="dados-${s.name}"></pre>
             `;
           }
           container.appendChild(div);
         });
       } catch (err) {
-        console.error("Erro ao carregar sessões:", err);
+        console.error(err);
       }
     }
 
     async function novaSessao() {
       const nome = prompt("Digite o nome da nova sessão:");
       if (!nome) return;
-
-      mostrarPopupQR(nome);
-
-      try {
-        const res = await fetch(`${API}/start-session`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: nome })
-        });
-        const data = await res.json();
-        if (data.error) {
-          document.getElementById("qrErro").innerText = data.error;
-        }
-      } catch (err) {
-        document.getElementById("qrErro").innerText = err.message;
-      }
+      await fetch(API + "/start-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: nome })
+      });
+      carregarSessoes();
+      abrirPopup(null); // abrir popup imediatamente
+      atualizarQR(nome);
     }
 
-    function mostrarPopupQR(nome) {
-      const modal = document.getElementById("qrModal");
-      const qrImg = document.getElementById("qrImg");
-      const qrTitulo = document.getElementById("qrTitulo");
-      const qrErro = document.getElementById("qrErro");
-
-      modal.style.display = "block";
-      qrTitulo.innerText = "Aguardando QR Code...";
-      qrImg.src = "";
-      qrErro.innerText = "";
-
-      qrInterval = setInterval(async () => {
-        try {
-          const res = await fetch(`${API}/qr/${nome}`);
-          const data = await res.json();
-
-          if (data.error) {
-            qrErro.innerText = data.error;
-            return;
-          }
-
-          if (data.active) {
-            qrTitulo.innerText = "Sessão Ativada ✅";
-            qrImg.src = "";
-            clearInterval(qrInterval);
-            fecharPopup();
-            carregarSessoes();
-            return;
-          }
-
-          if (data.qr) qrImg.src = data.qr;
-        } catch (err) {
-          qrErro.innerText = err.message;
-        }
-      }, 4000);
+    function abrirPopup(qr) {
+      document.getElementById("overlay").style.display = "block";
+      document.getElementById("popup").style.display = "block";
+      if (qr) document.getElementById("qrImage").src = qr;
     }
 
     function fecharPopup() {
-      document.getElementById("qrModal").style.display = "none";
-      if (qrInterval) clearInterval(qrInterval);
+      document.getElementById("overlay").style.display = "none";
+      document.getElementById("popup").style.display = "none";
+    }
+
+    async function atualizarQR(nome) {
+      const intervalQR = setInterval(async () => {
+        const res = await fetch(API + "/qr/" + nome);
+        const data = await res.json();
+        if (data.error) {
+          document.getElementById("qrImage").alt = data.error;
+          clearInterval(intervalQR);
+          return;
+        }
+        if (data.qr) {
+          abrirPopup(data.qr);
+        }
+        if (data.active) {
+          clearInterval(intervalQR);
+          fecharPopup();
+          carregarSessoes();
+        }
+      }, 4000);
     }
 
     async function enviarMensagem(nome) {
@@ -142,44 +125,26 @@
       const message = document.getElementById("msg-" + nome).value;
       if (!number || !message) return alert("Número e mensagem obrigatórios!");
 
-      try {
-        const res = await fetch(`${API}/send-message/${nome}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ number, message })
-        });
-        const data = await res.json();
-        alert(data.status || data.error);
-      } catch (err) {
-        alert(err.message);
-      }
+      await fetch(API + "/send-message/" + nome, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number, message })
+      });
+      alert("Mensagem enviada!");
     }
 
     async function baixarDados(nome) {
-      try {
-        const res = await fetch(`${API}/get-session/${nome}`);
-        const dados = await res.json();
-        document.getElementById("dados-" + nome).innerText = JSON.stringify(dados, null, 2);
-      } catch (err) {
-        alert(err.message);
-      }
+      const res = await fetch(API + "/get-session/" + nome);
+      const dados = await res.json();
+      document.getElementById("dados-" + nome).innerText = JSON.stringify(dados, null, 2);
     }
 
     async function excluirSessao(nome) {
-      if (!confirm(`Deseja excluir a sessão ${nome}?`)) return;
-      try {
-        const res = await fetch(`${API}/delete-session/${nome}`, { method: 'DELETE' });
-        const data = await res.json();
-        alert(data.status || data.error);
-        carregarSessoes();
-      } catch (err) {
-        alert(err.message);
-      }
+      await fetch(API + "/delete-session/" + nome, { method: 'DELETE' });
+      carregarSessoes();
     }
 
-    // Inicializa
     carregarSessoes();
-    setInterval(carregarSessoes, 40000);
   </script>
 </body>
 </html>

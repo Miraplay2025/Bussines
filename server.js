@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Servir HTML direto do Express
+// Servir HTML
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -19,11 +19,12 @@ async function createSession(name) {
   if (sessions[name]) return sessions[name];
 
   let tempSession = { client: null, qrCode: null, active: false, interval: null };
+  sessions[name] = tempSession; // registrar imediatamente para que o QR seja acessível
 
   const client = await wppconnect.create({
     session: name,
     catchQR: (qr) => {
-      tempSession.qrCode = qr;
+      tempSession.qrCode = `data:image/png;base64,${Buffer.from(qr).toString('base64')}`;
       tempSession.active = false;
       console.log(`📲 QR atualizado para sessão ${name}`);
     },
@@ -32,10 +33,11 @@ async function createSession(name) {
 
       if (status === 'CONNECTED') {
         tempSession.active = true;
-        sessions[name] = tempSession;
-        if (tempSession.interval) clearInterval(tempSession.interval);
-        tempSession.interval = null;
         console.log(`✅ Sessão ${name} conectada`);
+        if (tempSession.interval) {
+          clearInterval(tempSession.interval);
+          tempSession.interval = null;
+        }
       }
 
       if (['DISCONNECTED', 'NOTLOGGED', 'CLOSED'].includes(status)) {
@@ -50,7 +52,14 @@ async function createSession(name) {
   });
 
   tempSession.client = client;
-  sessions[name] = tempSession;
+
+  // Intervalo para log enquanto QR não conectado
+  tempSession.interval = setInterval(() => {
+    if (!tempSession.active) {
+      console.log(`⏳ Sessão ${name} aguardando QR...`);
+    }
+  }, 4000);
+
   return tempSession;
 }
 
@@ -58,7 +67,7 @@ async function createSession(name) {
 app.get('/sessions', (req, res) => {
   const data = Object.keys(sessions).map(name => ({
     name,
-    active: sessions[name].active,
+    active: sessions[name].active
   }));
   res.json(data);
 });
@@ -70,27 +79,18 @@ app.post('/start-session', async (req, res) => {
 
   try {
     const session = await createSession(name);
-
-    // Intervalo de log QR aguardando conexão
-    if (!session.active && !session.interval) {
-      session.interval = setInterval(() => {
-        console.log(`⏳ Sessão ${name} aguardando QR...`);
-      }, 4000);
-    }
-
     res.json({ status: 'Sessão criada, aguarde QR', name });
   } catch (err) {
     res.json({ error: err.message });
   }
 });
 
-// Retornar QR de uma sessão
+// Retornar QR
 app.get('/qr/:name', (req, res) => {
   const { name } = req.params;
   const session = sessions[name];
   if (!session) return res.json({ error: 'Sessão não encontrada' });
-  if (session.active) return res.json({ qr: null, active: true });
-  res.json({ qr: session.qrCode, active: false });
+  res.json({ qr: session.active ? null : session.qrCode, active: session.active });
 });
 
 // Enviar mensagem
@@ -142,3 +142,4 @@ app.delete('/delete-session/:name', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
+  

@@ -17,14 +17,18 @@ wppconnect.create({
   session: 'my-session',
   puppeteerOptions: {
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    headless: true
   },
 }).then(c => {
   client = c;
+  console.log('WPPConnect iniciado com sucesso!');
 
   client.onStateChange((state) => {
     console.log('Estado WhatsApp:', state);
     if (state === 'CONNECTED' || state === 'QR_READ_SUCCESS' || state === 'OPENING') {
       connected = true;
+    } else if (state === 'TIMEOUT' || state === 'UNPAIRED') {
+      connected = false;
     }
   });
 
@@ -32,7 +36,7 @@ wppconnect.create({
     console.log('Mensagem recebida:', msg.body);
   });
 
-}).catch(err => console.log(err));
+}).catch(err => console.log('Erro ao iniciar WPPConnect:', err));
 
 // Endpoint para obter QR Code
 app.get('/qr', async (req, res) => {

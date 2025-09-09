@@ -8,28 +8,29 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Servir HTML estático
+// Servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
 let client;
 let lastQRCode = null;
 
-// Cria a sessão do WhatsApp com persistência
+// Cria a sessão do WhatsApp com persistência e args para root
 wppconnect.create({
     session: 'session1',
-    puppeteerOptions: { headless: true },
-    folderNameToken: './tokens'
+    puppeteerOptions: {
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    },
+    folderNameToken: './tokens' // pasta para salvar sessão
 }).then((c) => {
     client = c;
     console.log('WhatsApp conectado!');
 
-    // Evento de QR code
     client.on('qr', async (qr) => {
         lastQRCode = await QRCode.toDataURL(qr);
         console.log('QR Code atualizado!');
     });
 
-    // Evento de desconexão
     client.on('disconnected', (reason) => {
         console.log('WhatsApp desconectado:', reason);
         lastQRCode = null;
@@ -37,7 +38,7 @@ wppconnect.create({
 
 }).catch(err => console.log('Erro ao criar sessão:', err));
 
-// Endpoint para obter QR code
+// Endpoint para pegar QR code
 app.get('/qrcode', async (req, res) => {
     const connected = client && client.isConnected ? true : false;
     res.json({ qr: lastQRCode, connected });

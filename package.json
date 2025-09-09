@@ -1,15 +1,18 @@
 {
-  "name": "wppconnect-render",
+  "name": "whatsapp-bot",
   "version": "1.0.0",
-  "description": "WhatsApp WPPConnect com QR code dinâmico",
-  "main": "server.js",
+  "description": "Bot para enviar mensagens no WhatsApp usando WPPConnect",
+  "main": "sendWhatsapp.js",
   "scripts": {
-    "start": "node server.js",
-    "postinstall": "npx puppeteer install"
+    "start": "node sendWhatsapp.js"
   },
+  "author": "Seu Nome",
+  "license": "MIT",
   "dependencies": {
-    "@wppconnect-team/wppconnect": "latest",
-    "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "@wppconnect-team/wppconnect": "^2.0.0",
+    "puppeteer": "^23.0.0"
+  },
+  "engines": {
+    "node": "20.x"
   }
 }

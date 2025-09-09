@@ -4,10 +4,41 @@
     <meta charset="UTF-8">
     <title>WhatsApp QR Code e Envio de Mensagem</title>
     <style>
-        body { font-family: Arial; text-align: center; margin-top: 50px; }
-        img { width: 250px; height: 250px; margin-bottom: 20px; }
-        input, button { padding: 10px; margin: 5px; width: 200px; }
-        button { cursor: pointer; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px auto;
+            max-width: 400px;
+        }
+        #qrContainer {
+            margin-bottom: 30px;
+        }
+        #qrContainer img {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            cursor: pointer;
+            background-color: #25D366;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #128C7E;
+        }
+        #status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -18,9 +49,7 @@
 
     <h2>Enviar Mensagem</h2>
     <input type="text" id="number" placeholder="Número (2588xxxxxxx)">
-    <br>
     <input type="text" id="message" placeholder="Mensagem">
-    <br>
     <button onclick="sendMessage()">Enviar</button>
     <p id="status"></p>
 
@@ -32,7 +61,7 @@
                 const container = document.getElementById('qrContainer');
 
                 if (data.connected) {
-                    container.innerHTML = `<p>WhatsApp conectado!</p>`;
+                    container.innerHTML = `<p>✅ WhatsApp conectado!</p>`;
                 } else if (data.qr) {
                     container.innerHTML = `<img src="${data.qr}" alt="QR Code">`;
                 } else {
@@ -43,8 +72,9 @@
             }
         }
 
+        // Atualiza o QR code imediatamente e depois a cada 30 segundos
         loadQRCode();
-        setInterval(loadQRCode, 20000); // Atualiza a cada 20 segundos
+        setInterval(loadQRCode, 30000);
 
         async function sendMessage() {
             const number = document.getElementById('number').value;
@@ -75,3 +105,4 @@
     </script>
 </body>
 </html>
+

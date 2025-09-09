@@ -2,62 +2,73 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WhatsApp QR Code</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsApp WPPConnect</title>
 <style>
-body { font-family: Arial; text-align:center; margin: 20px; }
-img { max-width: 300px; height: auto; margin: 20px auto; display:block; }
-.form-box { max-width: 400px; margin:auto; padding:20px; border:1px solid #ccc; border-radius:8px; }
-input, textarea, button { width:100%; padding:10px; margin:8px 0; border-radius:5px; border:1px solid #ccc; }
-button { background:green; color:white; font-weight:bold; cursor:pointer; }
+body { font-family: Arial; text-align: center; margin: 20px; }
+img { width: 250px; height: 250px; }
+#message-form { display: none; margin-top: 20px; }
+input, textarea { padding: 10px; margin: 5px; width: 80%; max-width: 400px; }
+button { padding: 10px 20px; margin-top: 10px; }
 </style>
 </head>
 <body>
-<h2>Conectar ao WhatsApp</h2>
-
+<h1>WhatsApp WPPConnect</h1>
 <div id="qr-container">
-<p>Aguardando QR Code...</p>
-<button onclick="getQR()">Obter QR Code</button>
-<div id="qr"></div>
+    <p>Aguardando QR Code...</p>
+    <img id="qr-img" src="" alt="QR Code" style="display:none;">
 </div>
 
-<div id="form-container" style="display:none;">
-<h3>Enviar Mensagem</h3>
-<div class="form-box">
-<form id="msgForm">
-<input type="text" name="phone" placeholder="Número (ex: 258840000000)" required>
-<textarea name="message" placeholder="Digite sua mensagem" required></textarea>
-<button type="submit">Enviar</button>
-</form>
-</div>
+<div id="message-form">
+    <h2>Enviar Mensagem</h2>
+    <form id="sendForm">
+        <input type="text" id="phone" placeholder="Número com DDI e DDD" required><br>
+        <textarea id="message" placeholder="Mensagem" required></textarea><br>
+        <button type="submit">Enviar</button>
+    </form>
+    <p id="status"></p>
 </div>
 
 <script>
-function getQR() {
-    fetch('/get_qr')
-    .then(res => res.json())
-    .then(data => {
-        if(data.qrcode){
-            document.getElementById('qr').innerHTML = `<img src="data:image/png;base64,${data.qrcode}" alt="QR Code">`;
-        }
-        if(data.status === "CONNECTED"){
-            document.getElementById('qr-container').style.display = 'none';
-            document.getElementById('form-container').style.display = 'block';
+async function fetchQR() {
+    try {
+        const res = await fetch("/qr");
+        const data = await res.json();
+        if (data.qr) {
+            document.getElementById("qr-img").src = "data:image/png;base64," + data.qr;
+            document.getElementById("qr-img").style.display = "block";
         } else {
-            setTimeout(getQR, 5000); // Tenta atualizar QR a cada 5s
+            setTimeout(fetchQR, 2000);
         }
-    });
+    } catch (e) {
+        setTimeout(fetchQR, 2000);
+    }
 }
 
-// Envio do formulário
-document.getElementById('msgForm').addEventListener('submit', function(e){
+fetchQR();
+
+const qrInterval = setInterval(async () => {
+    const res = await fetch("/qr");
+    const data = await res.json();
+    if (!data.qr) {
+        clearInterval(qrInterval);
+        document.getElementById("qr-container").style.display = "none";
+        document.getElementById("message-form").style.display = "block";
+    }
+}, 3000);
+
+document.getElementById("sendForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    let formData = new FormData(this);
-    fetch('/send_message', { method:'POST', body:formData })
-    .then(res => res.json())
-    .then(data => alert('Resposta: ' + JSON.stringify(data)));
+    const phone = document.getElementById("phone").value;
+    const message = document.getElementById("message").value;
+    const res = await fetch("/send_message", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `phone=${phone}&message=${encodeURIComponent(message)}`
+    });
+    const data = await res.json();
+    document.getElementById("status").innerText = JSON.stringify(data);
 });
 </script>
 </body>
 </html>
-  

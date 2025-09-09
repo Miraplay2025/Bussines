@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>WhatsApp WPPConnect</title>
+  <style>
+    body { font-family: Arial; text-align: center; margin: 20px; }
+    img { max-width: 300px; width: 80%; height: auto; margin: 20px auto; display: block; }
+    form { display: none; margin-top: 20px; }
+    input, textarea { padding: 10px; margin: 5px; width: 80%; max-width: 400px; }
+    button { padding: 10px 20px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>WhatsApp WPPConnect</h1>
+
+  <div id="qr-container">
+    <p>Aguardando QR Code...</p>
+    <img id="qr" src="" alt="QR Code">
+  </div>
+
+  <form id="sendForm">
+    <input type="text" id="number" placeholder="Número com DDI (ex: 25884xxxxxxx)">
+    <textarea id="message" placeholder="Mensagem"></textarea>
+    <button type="submit">Enviar</button>
+  </form>
+
+  <script>
+    const qrImg = document.getElementById('qr');
+    const qrContainer = document.getElementById('qr-container');
+    const form = document.getElementById('sendForm');
+
+    async function fetchQR() {
+      try {
+        const res = await fetch('/qr');
+        const data = await res.json();
+
+        if (data.qr) {
+          qrImg.src = 'data:image/png;base64,' + data.qr;
+          qrContainer.style.display = 'block';
+          form.style.display = 'none';
+        } else if (data.status === 'conectado') {
+          qrContainer.style.display = 'none';
+          form.style.display = 'block';
+        }
+      } catch (err) {
+        console.log('Erro ao obter QR:', err);
+      }
+    }
+
+    fetchQR();
+    setInterval(fetchQR, 30000); // Atualiza QR code a cada 30 segundos
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const number = document.getElementById('number').value;
+      const message = document.getElementById('message').value;
+
+      const res = await fetch('/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number, message }),
+      });
+      const data = await res.json();
+      alert(data.status || data.error);
+    });
+  </script>
+</body>
+</html>
+

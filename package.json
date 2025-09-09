@@ -9,7 +9,7 @@
   "author": "Seu Nome",
   "license": "MIT",
   "dependencies": {
-    "@wppconnect-team/wppconnect": "^2.0.0",
+    "@wppconnect-team/wppconnect": "^1.14.8",
     "puppeteer": "^23.0.0"
   },
   "engines": {

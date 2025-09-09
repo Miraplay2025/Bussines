@@ -9,7 +9,6 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 let client;
-let qrCodeBase64 = null;
 let connected = false;
 
 // Inicializa WPPConnect
@@ -46,8 +45,7 @@ app.get('/qr', async (req, res) => {
 
   try {
     const qr = await client.getQrCode();
-    qrCodeBase64 = qr;
-    res.json({ qr: qrCodeBase64 });
+    res.json({ qr });
   } catch (err) {
     res.json({ status: 'conectado' });
   }

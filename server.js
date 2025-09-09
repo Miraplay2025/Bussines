@@ -1,6 +1,8 @@
+// server.js
 const wppconnect = require('@wppconnect-team/wppconnect');
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 app.use(cors());
@@ -8,7 +10,7 @@ app.use(express.json());
 
 let sessions = {}; // { nome: { client, qrCode, active, interval } }
 
-// Criar nova sessão
+// 🔹 Criar nova sessão
 async function createSession(sessionName) {
   if (sessions[sessionName]) return sessions[sessionName];
 
@@ -52,6 +54,11 @@ async function createSession(sessionName) {
     return tempSession;
   });
 }
+
+// 🔹 Servir HTML diretamente
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // 🔹 Listar sessões
 app.get('/sessions', (req, res) => {
@@ -124,6 +131,6 @@ app.get('/get-session/:name', async (req, res) => {
   }
 });
 
+// 🔹 Rodar servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
-    

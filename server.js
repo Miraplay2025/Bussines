@@ -11,6 +11,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 let client;
 let lastQRCode = null;
+let isConnected = false;
 
 // Criação da sessão WhatsApp
 wppconnect.create({
@@ -24,51 +25,43 @@ wppconnect.create({
     disableWelcome: true
 }).then(async (c) => {
     client = c;
-    console.log('WhatsApp conectado!');
+    console.log('WhatsApp iniciado!');
 
-    // Evento de QR code
+    // Captura QR Code sempre que for gerado
     client.on('qr', async (qr) => {
-        lastQRCode = await QRCode.toDataURL(qr);
-        console.log('QR Code atualizado!');
+        try {
+            lastQRCode = await QRCode.toDataURL(qr);
+            isConnected = false;
+            console.log('✅ QR Code atualizado, escaneie para conectar!');
+        } catch (err) {
+            console.log('Erro ao gerar QR Code:', err.message);
+        }
     });
 
-    // Cliente pronto
+    // Cliente conectado
     client.on('ready', () => {
-        console.log('Cliente pronto e conectado!');
-        lastQRCode = null; // QR code não é mais necessário
+        console.log('📲 Cliente pronto e conectado!');
+        lastQRCode = null;
+        isConnected = true;
     });
 
     // Cliente desconectado
     client.on('disconnected', (reason) => {
-        console.log('Cliente desconectado:', reason);
-        lastQRCode = null;
+        console.log('⚠️ Cliente desconectado:', reason);
+        isConnected = false;
     });
 
 }).catch(err => console.log('Erro ao criar sessão:', err));
 
-// Atualiza QR code a cada 30 segundos
-setInterval(async () => {
-    if (client && !client.isConnected) {
-        try {
-            await client.getQRCode().then(async (qr) => {
-                if (qr) lastQRCode = await QRCode.toDataURL(qr);
-            }).catch(() => {});
-        } catch (err) {
-            console.log('Erro ao atualizar QR code:', err.message);
-        }
-    }
-}, 30000); // 30 segundos
-
 // Endpoint para retornar QR code
 app.get('/qrcode', (req, res) => {
-    const connected = client && client.isConnected ? true : false;
-    res.json({ qr: lastQRCode, connected });
+    res.json({ qr: lastQRCode, connected: isConnected });
 });
 
 // Endpoint para enviar mensagem
 app.post('/send', async (req, res) => {
     const { number, message } = req.body;
-    if (!client || !client.isConnected) {
+    if (!client || !isConnected) {
         return res.status(500).json({ error: 'Cliente não conectado' });
     }
 
@@ -82,4 +75,4 @@ app.post('/send', async (req, res) => {
 
 // Porta
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));

@@ -1,14 +1,10 @@
 {
-  "name": "wppconnect-multi",
+  "name": "wpp-flask",
   "version": "1.0.0",
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "npx @wppconnect-team/wppconnect-server --puppeteerOptions.headless true --puppeteerOptions.args [--no-sandbox,--disable-setuid-sandbox]"
   },
   "dependencies": {
-    "@wppconnect-team/wppconnect": "^1.29.0",
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "qrcode": "^1.5.1"
+    "@wppconnect-team/wppconnect-server": "^1.0.0"
   }
 }

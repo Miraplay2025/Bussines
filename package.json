@@ -1,7 +1,6 @@
 {
   "name": "wppconnect-render",
   "version": "1.0.0",
-  "description": "WPPConnect Server para Render",
   "main": "wppconnect.js",
   "scripts": {
     "start": "node wppconnect.js"
@@ -10,3 +9,4 @@
     "@wppconnect-team/wppconnect": "^2.0.0"
   }
 }
+

@@ -4,12 +4,15 @@
   "description": "WPPConnect App para WhatsApp com QR Code e envio de mensagens",
   "main": "server.js",
   "scripts": {
+    "postinstall": "npx puppeteer install",
     "start": "node server.js"
   },
   "dependencies": {
     "@wppconnect-team/wppconnect": "^1.9.0",
     "express": "^4.18.2",
     "cors": "^2.8.5",
-    "body-parser": "^1.20.2"
-  }
+    "body-parser": "^1.20.2",
+    "puppeteer": "^21.3.8"
+  },
+  "license": "MIT"
 }

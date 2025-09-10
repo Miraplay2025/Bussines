@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Enviar WhatsApp</title>
+<style>
+body { font-family: Arial; text-align: center; margin-top: 50px; }
+input, textarea { padding: 10px; margin: 5px; width: 300px; }
+button { padding: 10px 20px; margin-top: 10px; cursor: pointer; }
+#status { margin-top: 20px; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>Enviar Mensagem WhatsApp</h1>
+<form id="whatsappForm">
+    <input type="text" id="number" placeholder="Número (ex: 25884xxxxxxx)" required><br>
+    <textarea id="message" placeholder="Mensagem" required></textarea><br>
+    <button type="submit">Enviar</button>
+</form>
+<div id="status"></div>
+
+<script>
+document.getElementById('whatsappForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const number = document.getElementById('number').value;
+    const message = document.getElementById('message').value;
+
+    document.getElementById('status').textContent = 'Enviando...';
+
+    try {
+        const res = await fetch('/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ number, message })
+        });
+        const data = await res.json();
+        if(data.success) {
+            document.getElementById('status').textContent = 'Mensagem enviada com sucesso!';
+        } else {
+            document.getElementById('status').textContent = 'Erro: ' + (data.error || 'Desconhecido');
+        }
+    } catch (err) {
+        document.getElementById('status').textContent = 'Erro ao enviar mensagem.';
+        console.error(err);
+    }
+});
+</script>
+</body>
+</html>

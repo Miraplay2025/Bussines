@@ -3,5 +3,5 @@ services:
     name: venom-bot
     env: node
     plan: free
-    buildCommand: "npm install"
+    buildCommand: "npm install --legacy-peer-deps"
     startCommand: "npm start"

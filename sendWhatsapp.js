@@ -1,23 +1,22 @@
 const wppconnect = require('@wppconnect-team/wppconnect');
 
 wppconnect.create({
-    session: 'session1',             // Nome da sessão
+    session: 'session1',
     catchQR: (qr, asciiQR) => {
         console.log('QR Code gerado, escaneie pelo WhatsApp:');
-        console.log(asciiQR);       // Exibe QR no terminal
+        console.log(asciiQR);
     },
     statusFind: (statusSession, session) => {
         console.log('Status da sessão:', statusSession);
     },
-    headless: true,                  // Navegador headless
-    browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'], // Flags
-    useChrome: true                  // Usar navegador padrão instalado
+    headless: true,
+    browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
+    useChrome: false // 🔑 Forçar Puppeteer a usar Chromium (vem incluso)
 })
 .then(client => {
     console.log('WhatsApp conectado com sucesso!');
 
-    // Enviar mensagem
-    const numero = '258878196239'; // Inclua o código do país (Moçambique: 258)
+    const numero = '258878196239'; // Moçambique +258
     const mensagem = 'Olá, tudo bem?';
 
     client.sendText(numero + '@c.us', mensagem)
@@ -27,9 +26,7 @@ wppconnect.create({
         .catch((erro) => {
             console.error('Erro ao enviar mensagem:', erro);
         });
-
 })
 .catch((erro) => {
     console.error('Erro ao criar sessão:', erro);
 });
-

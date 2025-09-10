@@ -1,13 +1,13 @@
 {
-  "name": "venom-bot-render",
+  "name": "wppconnect-render",
   "version": "1.0.0",
-  "description": "Bot WhatsApp usando Venom rodando no Render",
+  "description": "Bot WhatsApp usando WPPConnect Server no Render",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "venom-bot": "^5.0.0"
+    "@wppconnect-team/wppconnect": "^2.0.0"
   },
   "engines": {
     "node": "20.x"

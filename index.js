@@ -1,34 +1,29 @@
 const wppconnect = require('@wppconnect-team/wppconnect');
-const puppeteer = require('puppeteer'); // garante que WPPConnect use Chromium instalado
 
-async function start() {
-  try {
-    const client = await wppconnect.create({
-      session: 'render-session',
-      catchQR: (qrCode, asciiQR) => {
-        console.log('📸 Escaneie o QR Code abaixo para conectar:');
-        console.log(asciiQR); // QR Code no terminal
-      },
-      statusFind: (statusSession, session) => {
-        console.log('Status da sessão:', statusSession);
-      },
-      headless: true,
-      puppeteerOptions: {
-        executablePath: puppeteer.executablePath(), // força usar Chromium do Puppeteer
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      }
-    });
+const args = process.argv.slice(2);
 
-    console.log('✅ WhatsApp conectado!');
+// Recebe número e mensagem via argumentos
+const number = args[0]; // ex: '25884xxxxxxx'
+const message = args[1]; // ex: 'Olá, essa é uma mensagem de teste'
 
-    const numero = '258878196239';
-    const mensagem = 'Olá, tudo bem?';
-    await client.sendText(numero + '@c.us', mensagem);
-
-    console.log('Mensagem enviada com sucesso!');
-  } catch (error) {
-    console.error('Erro ao conectar ou enviar mensagem:', error);
-  }
+if (!number || !message) {
+    console.log('Uso: node index.js <numero> <mensagem>');
+    process.exit(1);
 }
 
-start();
+wppconnect.create({
+    session: 'bot',
+    puppeteerOptions: {
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    }
+}).then(client => {
+    client.sendText(number.includes('@c.us') ? number : `${number}@c.us`, message)
+        .then((result) => {
+            console.log('Mensagem enviada com sucesso:', result);
+        })
+        .catch((error) => {
+            console.error('Erro ao enviar mensagem:', error);
+        });
+}).catch((error) => {
+    console.error('Erro ao criar cliente WPPConnect:', error);
+});

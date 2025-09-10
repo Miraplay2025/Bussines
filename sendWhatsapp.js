@@ -1,4 +1,5 @@
 const wppconnect = require('@wppconnect-team/wppconnect');
+const puppeteer = require('puppeteer');
 
 wppconnect.create({
     session: 'session1',
@@ -11,12 +12,15 @@ wppconnect.create({
     },
     headless: true,
     browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
-    useChrome: false // 🔑 Forçar Puppeteer a usar Chromium (vem incluso)
+    useChrome: false,
+    puppeteerOptions: {
+        executablePath: puppeteer.executablePath() // 🔑 usa o Chromium baixado
+    }
 })
 .then(client => {
     console.log('WhatsApp conectado com sucesso!');
 
-    const numero = '258878196239'; // Moçambique +258
+    const numero = '258878196239';
     const mensagem = 'Olá, tudo bem?';
 
     client.sendText(numero + '@c.us', mensagem)

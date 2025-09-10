@@ -8,6 +8,8 @@ const fetch = require('node-fetch');
 
 const WPP_PORT = 21465;
 const SESSIONS_DIR = path.join(__dirname, 'sessions');
+
+// Cria pasta de sessões se não existir
 if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
 
 // Inicia o WPPConnect Server via npx
@@ -17,13 +19,13 @@ const wppProcess = spawn('npx', ['wppconnect-server', '--port', WPP_PORT, '--ses
     shell: true
 });
 
-// Aguardar 5 segundos antes de iniciar servidor web
+// Aguarda alguns segundos antes de iniciar o servidor web
 setTimeout(() => {
     console.log('Iniciando servidor web...');
     startWebServer();
 }, 5000);
 
-// Servidor Express para webform
+// Servidor web para receber requisições
 function startWebServer() {
     const app = express();
     const PORT = process.env.PORT || 3000;

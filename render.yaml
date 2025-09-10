@@ -7,4 +7,3 @@ services:
     startCommand: "npm start"
     branch: main
     autoDeploy: true
-    healthCheckPath: "/"

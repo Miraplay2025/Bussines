@@ -1,0 +1,29 @@
+name: Send WhatsApp Message
+
+on:
+  workflow_dispatch:
+    inputs:
+      number:
+        description: 'Número do WhatsApp (com código do país, ex: 25884xxxxxxx)'
+        required: true
+      message:
+        description: 'Mensagem para enviar'
+        required: true
+
+jobs:
+  send-message:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Send WhatsApp Message
+      run: node index.js "${{ github.event.inputs.number }}" "${{ github.event.inputs.message }}"

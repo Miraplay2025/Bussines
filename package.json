@@ -7,9 +7,10 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@wppconnect-team/wppconnect": "^2.0.0"
+    "@wppconnect-team/wppconnect": "^1.9.6"
   },
   "engines": {
     "node": "20.x"
-  }
+  },
+  "license": "MIT"
 }

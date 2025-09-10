@@ -1,4 +1,5 @@
 const wppconnect = require('@wppconnect-team/wppconnect');
+const puppeteer = require('puppeteer'); // garante que WPPConnect use Chromium instalado
 
 async function start() {
   try {
@@ -12,7 +13,10 @@ async function start() {
         console.log('Status da sessão:', statusSession);
       },
       headless: true,
-      browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
+      puppeteerOptions: {
+        executablePath: puppeteer.executablePath(), // força usar Chromium do Puppeteer
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      }
     });
 
     console.log('✅ WhatsApp conectado!');

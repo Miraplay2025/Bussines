@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "prestart": "apt-get update && apt-get install -y chromium-browser", 
     "start": "node index.js"
   },
   "dependencies": {

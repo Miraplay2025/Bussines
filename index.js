@@ -1,29 +1,58 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
 const wppconnect = require('@wppconnect-team/wppconnect');
+const path = require('path');
 
-const args = process.argv.slice(2);
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-// Recebe número e mensagem via argumentos
-const number = args[0]; // ex: '25884xxxxxxx'
-const message = args[1]; // ex: 'Olá, essa é uma mensagem de teste'
+app.use(cors());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-if (!number || !message) {
-    console.log('Uso: node index.js <numero> <mensagem>');
-    process.exit(1);
-}
+let client;
 
+// Inicializa WPPConnect
 wppconnect.create({
     session: 'bot',
+    catchQR: (qrCode) => {
+        console.log('QR Code gerado. Escaneie para autenticar:');
+        console.log(qrCode);
+    },
     puppeteerOptions: {
         args: ['--no-sandbox', '--disable-setuid-sandbox']
+    },
+}).then(c => {
+    client = c;
+    console.log('WPPConnect iniciado com sucesso!');
+}).catch(err => {
+    console.error('Erro ao iniciar WPPConnect:', err);
+});
+
+// Rota principal para envio
+app.post('/send', async (req, res) => {
+    const { number, message } = req.body;
+
+    if (!number || !message) {
+        return res.status(400).json({ error: 'Número e mensagem são obrigatórios.' });
     }
-}).then(client => {
-    client.sendText(number.includes('@c.us') ? number : `${number}@c.us`, message)
-        .then((result) => {
-            console.log('Mensagem enviada com sucesso:', result);
-        })
-        .catch((error) => {
-            console.error('Erro ao enviar mensagem:', error);
-        });
-}).catch((error) => {
-    console.error('Erro ao criar cliente WPPConnect:', error);
+
+    if (!client) {
+        return res.status(500).json({ error: 'Cliente WhatsApp não iniciado ainda.' });
+    }
+
+    try {
+        const formattedNumber = number.includes('@c.us') ? number : `${number}@c.us`;
+        const result = await client.sendText(formattedNumber, message);
+        res.json({ success: true, result });
+    } catch (err) {
+        console.error('Erro ao enviar mensagem:', err);
+        res.status(500).json({ error: 'Falha ao enviar mensagem.' });
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
 });

@@ -6,6 +6,6 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@wppconnect-team/wppconnect": "^2.0.0"
+    "@wppconnect-team/wppconnect": "^1.11.9"
   }
 }

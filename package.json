@@ -1,20 +1,14 @@
 {
-  "name": "whatsapp-bot",
+  "name": "ocr-app",
   "version": "1.0.0",
-  "description": "Bot de envio de mensagens WhatsApp usando WPPConnect no Render",
-  "main": "index.js",
+  "description": "Sistema Node.js para extrair texto de imagens usando Tesseract OCR",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js"
-  },
-  "engines": {
-    "node": "20.x"
+    "start": "node server.js"
   },
   "dependencies": {
-    "@wppconnect-team/wppconnect": "^1.11.9",
     "express": "^4.18.2",
-    "body-parser": "^1.20.2",
-    "puppeteer": "^21.3.8"
-  },
-  "author": "SeuNome",
-  "license": "MIT"
+    "multer": "^1.4.5-lts.1",
+    "tesseract.js": "^4.1.1"
+  }
 }

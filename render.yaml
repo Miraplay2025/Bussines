@@ -1,11 +1,7 @@
 services:
-  - type: web
-    name: whatsapp-bot
+  - type: worker
+    name: venom-bot
     env: node
     plan: free
-    buildCommand: |
-      npm install
-      npx puppeteer browsers install chromium
+    buildCommand: "npm install"
     startCommand: "npm start"
-    branch: main
-    autoDeploy: true

@@ -4,10 +4,12 @@
   "description": "Bot WhatsApp usando WPPConnect Server no Render",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "postinstall": "npx puppeteer install"
   },
   "dependencies": {
-    "@wppconnect-team/wppconnect": "^1.9.6"
+    "@wppconnect-team/wppconnect": "^1.9.6",
+    "puppeteer": "^21.3.8"
   },
   "engines": {
     "node": "20.x"

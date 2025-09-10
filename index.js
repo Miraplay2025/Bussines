@@ -7,12 +7,11 @@ const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
-// Inicializa o cliente WPPConnect usando o Chromium do Render
+// Inicializa o cliente WPPConnect
 wppconnect.create({
     session: 'bot',
     puppeteerOptions: {
-        executablePath: '/usr/bin/chromium-browser', // Caminho do Chromium do Render
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
     }
 }).then(client => {
     console.log('WPPConnect iniciado com sucesso!');
@@ -26,15 +25,19 @@ wppconnect.create({
         }
 
         try {
-            const result = await client.sendText(number.includes('@c.us') ? number : `${number}@c.us`, message);
-            console.log('Mensagem enviada:', result);
+            // Adiciona @c.us se não estiver presente
+            const chatId = number.includes('@c.us') ? number : `${number}@c.us`;
+            const result = await client.sendText(chatId, message);
+
+            console.log(`Mensagem enviada para ${chatId}:`, result);
             return res.json({ success: true, result });
         } catch (error) {
             console.error('Erro ao enviar mensagem:', error);
-            return res.status(500).json({ error: 'Falha ao enviar mensagem', details: error });
+            return res.status(500).json({ error: 'Falha ao enviar mensagem', details: error.toString() });
         }
     });
 
+    // Inicia o servidor HTTP
     app.listen(PORT, () => {
         console.log(`Servidor rodando na porta ${PORT}`);
     });
@@ -42,4 +45,3 @@ wppconnect.create({
 }).catch(error => {
     console.error('Erro ao iniciar WPPConnect:', error);
 });
-

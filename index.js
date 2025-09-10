@@ -17,8 +17,7 @@ async function start() {
 
     console.log('✅ WhatsApp conectado!');
 
-    // Envia mensagem
-    const numero = '258878196239'; // formato internacional sem "+"
+    const numero = '258878196239';
     const mensagem = 'Olá, tudo bem?';
     await client.sendText(numero + '@c.us', mensagem);
 

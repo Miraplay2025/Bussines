@@ -1,7 +1,7 @@
 services:
   - type: worker
-    name: venom-bot
+    name: wppconnect-bot
     env: node
     plan: free
-    buildCommand: "npm install --legacy-peer-deps"
+    buildCommand: "npm install"
     startCommand: "npm start"

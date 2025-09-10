@@ -1,14 +1,19 @@
 {
   "name": "whatsapp-bot",
   "version": "1.0.0",
+  "description": "Bot de envio de mensagens WhatsApp usando WPPConnect no Render",
   "main": "index.js",
   "scripts": {
-    "prestart": "apt-get update && apt-get install -y chromium-browser", 
     "start": "node index.js"
+  },
+  "engines": {
+    "node": "20.x"
   },
   "dependencies": {
     "@wppconnect-team/wppconnect": "^1.11.9",
     "express": "^4.18.2",
     "body-parser": "^1.20.2"
-  }
+  },
+  "author": "SeuNome",
+  "license": "MIT"
 }
